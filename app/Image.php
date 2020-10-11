@@ -25,4 +25,16 @@ class Image extends Model
 
         return $gambar;
     }
+
+    public static function getCount($doc_id)
+    {
+        $count = DB::table('images')->where('doc_id', $doc_id)->count();
+
+        return $count;
+    }
+
+    public static function deleted($id)
+    {
+        DB::table('images')->where('id', $id)->delete();
+    }
 }

@@ -77,7 +77,8 @@ class ImagesController extends Controller
                 $name = DB::select("select SUBSTR(img_name,INSTR(img_name,'.')-1,1) as img_name from images where doc_id = ? order by img_name desc limit 1", [$docId]);
                 $name = $name[0]->img_name + 1;
 
-                if ($name == '7') {
+                $counter = Image::getCount($docId);
+                if ($counter == 6) {
                     return response()->json([
                         'message'   => 'Melewati batas dan Melampauinya',
                         'class_name'  => 'alert-danger'
@@ -152,9 +153,12 @@ class ImagesController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        //
+        if ($request->ajax()) {
+            Image::deleted($request->id);
+            echo '<div class="alert alert-success">Data Deleted</div>';
+        }
     }
 
     public function fetch_data(Request $request)
@@ -162,10 +166,9 @@ class ImagesController extends Controller
         $value = $request->session()->get('key');
 
         if ($request->ajax()) {
-            $data = Image::getGambar('PI-LKRS-20-00018');
+            $data = Image::getGambar($value);
 
             echo json_encode($data);
         }
-        // return $request->all();
     }
 }

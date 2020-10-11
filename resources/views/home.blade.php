@@ -3,7 +3,6 @@
 @section('title')
 Home
 @endsection
-
 <style>
     .navbar-nav {
         margin-left: 90%;

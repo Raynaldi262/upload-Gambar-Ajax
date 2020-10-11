@@ -13,6 +13,16 @@
     .alert {
         text-align: center;
     }
+
+    .tbl2-img,
+    th {
+        width: 50%;
+        text-align: center;
+        margin-left: auto;
+        margin-right: auto;
+        color: black;
+        margin-top: 10px;
+    }
 </style>
 
 <body>
@@ -48,8 +58,7 @@
         </form>
         <br />
 
-
-        <table class="table table-striped table-bordered">
+        <table class="table table-responsive tbl2-img">
             <thead>
                 <tr>
                     <th>Image</th>
@@ -90,6 +99,9 @@
             })
         });
 
+        var _token = $('input[name="_token"]').val();
+        console.log(_token);
+
         function fetch_data() {
             $.ajax({
                 url: "{{ route('fetch') }}",
@@ -99,11 +111,30 @@
                     for (var count = 0; count < data.length; count++) {
                         html += '<tr>';
                         html += '<td>' + "<img src=storage/images/" + data[count].img_name + " width='200px'>" + '</td>';
-                        html += '<td><button clas btn btn-danger>Delete</button></td></tr>';
+                        html += '<td>' + "<button class='btn btn-danger delete' id=" + data[count].id + '>Delete</button></td></tr>';
                     }
                     $('.tbl2').html(html);
                 }
             })
         }
+
+        $(document).on('click', '.delete', function() {
+            var id = $(this).attr('id');
+
+            // if (confirm("Are u sure want to delete this record?")) {
+            $.ajax({
+                url: "{{ route('delete') }}",
+                method: "POST",
+                data: {
+                    id: id,
+                    _token: _token
+                },
+                success: function(data) {
+                    $('#message').html(data);
+                    fetch_data();
+                }
+            })
+            // }
+        })
     });
 </script>
