@@ -31,6 +31,7 @@ class ImagesController extends Controller
      */
     public function create()
     {
+
         try {
             $docId = DB::select('select LPAD(substr(doc_id, 12, 5)+1,5,0) as doc_id from images order by doc_id desc limit 1');
 
@@ -40,8 +41,12 @@ class ImagesController extends Controller
         } catch (Exception $e) {
             $docId = 'PI-LKRS-20-00001';
         }
-        echo $docId;
 
+        request()->session()->put('key', $docId);
+
+        $value = request()->session()->get('key');
+
+        echo $value;
 
         return view('upload', [
             'id' => $docId,
@@ -150,5 +155,17 @@ class ImagesController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function fetch_data(Request $request)
+    {
+        $value = $request->session()->get('key');
+
+        if ($request->ajax()) {
+            $data = Image::getGambar('PI-LKRS-20-00018');
+
+            echo json_encode($data);
+        }
+        // return $request->all();
     }
 }

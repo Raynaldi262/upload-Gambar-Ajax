@@ -19,6 +19,9 @@
     <br />
     <div class="container">
         <h3 align="center">Upload Image in Laravel using Ajax</h3>
+        <a href="/" class="d-inline">
+            <button class="btn btn-danger">Kembali</button>
+        </a>
         <br />
         <div class="alert" id="message" style="display: none"></div>
         <form method="post" id="upload_form" enctype="multipart/form-data">
@@ -45,6 +48,18 @@
         </form>
         <br />
 
+
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody class="tbl2">
+
+            </tbody>
+        </table>
     </div>
 </body>
 
@@ -52,6 +67,7 @@
 
 <script>
     $(document).ready(function() {
+        fetch_data();
 
         $('#upload_form').on('submit', function(event) {
             event.preventDefault();
@@ -69,11 +85,25 @@
                     $('#message').addClass(data.class_name);
                     $('.custom-file-input').val('');
                     $('.img-preview').attr('src', 'storage/images/default.jpg');
+                    fetch_data();
                 }
             })
         });
 
-        // $.
-
+        function fetch_data() {
+            $.ajax({
+                url: "{{ route('fetch') }}",
+                dataType: 'json',
+                success: function(data) {
+                    var html = '';
+                    for (var count = 0; count < data.length; count++) {
+                        html += '<tr>';
+                        html += '<td>' + "<img src=storage/images/" + data[count].img_name + " width='200px'>" + '</td>';
+                        html += '<td><button clas btn btn-danger>Delete</button></td></tr>';
+                    }
+                    $('.tbl2').html(html);
+                }
+            })
+        }
     });
 </script>

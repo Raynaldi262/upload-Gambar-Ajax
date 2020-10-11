@@ -18,6 +18,7 @@ Route::get('/', 'ImagesController@index');
 Route::get('/upload', 'ImagesController@create')->name('upload');
 Route::post('/upload/action', 'ImagesController@store')->name('uploaded');
 
+Route::get('/fetch/image', 'ImagesController@fetch_data')->name('fetch');
 
 Route::view('login', 'login');
 Route::post('login', 'LoginController@index');
