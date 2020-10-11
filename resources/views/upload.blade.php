@@ -120,7 +120,6 @@
 
         $(document).on('click', '.delete', function() {
             var id = $(this).attr('id');
-
             // if (confirm("Are u sure want to delete this record?")) {
             $.ajax({
                 url: "{{ route('delete') }}",

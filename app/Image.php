@@ -37,4 +37,7 @@ class Image extends Model
     {
         DB::table('images')->where('id', $id)->delete();
     }
+
+    // $name = DB::select("select SUBSTR(img_name,INSTR(img_name,'.')-1,1) as img_name from images where doc_id = ? order by img_name desc limit 1", [$docId]);
+
 }

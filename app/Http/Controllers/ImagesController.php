@@ -74,17 +74,33 @@ class ImagesController extends Controller
             $docId = $request->doc_id; //dpt dokumen id  
             $ext = $request->image->extension();  //dpt file extension 
             try {
-                $name = DB::select("select SUBSTR(img_name,INSTR(img_name,'.')-1,1) as img_name from images where doc_id = ? order by img_name desc limit 1", [$docId]);
-                $name = $name[0]->img_name + 1;
-
                 $counter = Image::getCount($docId);
-                if ($counter == 6) {
+                if ($counter >= 6) {
                     return response()->json([
                         'message'   => 'Melewati batas dan Melampauinya',
                         'class_name'  => 'alert-danger'
                     ]);
+                } else {
+                    // dapat nomor ke- dari nama gambar yg aktif //1,2,3 dst
+                    $name = DB::select("select SUBSTR(img_name,INSTR(img_name,'.')-1,1) as img_name from images where doc_id = ?", [$docId]);
+                    $tmp = ''; //tmp penyimpanan untk nama yg blm ada
+
+                    // looping sampai ketemu angka yg blm ada
+                    for ($i = 1; $i < 7; $i++) {
+                        $c = 0;
+                        foreach ($name as $counter) {
+                            if ($counter->img_name == $i) {
+                                $c++;
+                            }
+                        }
+                        if ($c == 0) {
+                            $tmp = $i;
+                            break;
+                        }
+                    }
                 }
-                $name = $docId . '-' . $name . '.' . $ext;
+
+                $name = $docId . '-' . $tmp . '.' . $ext;
             } catch (Exception $e) {
                 $name = $docId . '-1.' . $ext;
             } // end cari nama
