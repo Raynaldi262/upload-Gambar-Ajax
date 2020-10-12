@@ -91,10 +91,15 @@
                 success: function(data) {
                     $('#message').css('display', 'block');
                     $('#message').html(data.message);
-                    $('#message').addClass(data.class_name);
+                    if (data.class_name == "alert-success") {
+                        $('#message').removeClass("alert-danger").addClass(data.class_name);
+                    } else {
+                        $('#message').removeClass("alert-success").addClass(data.class_name);
+                    }
                     $('.custom-file-input').val('');
                     $('.img-preview').attr('src', 'storage/images/default.jpg');
                     fetch_data();
+
                 }
             })
         });
@@ -111,7 +116,7 @@
                     for (var count = 0; count < data.length; count++) {
                         html += '<tr>';
                         html += '<td>' + "<img src=storage/images/" + data[count].img_name + " width='200px'>" + '</td>';
-                        html += '<td>' + "<button class='btn btn-danger delete' id=" + data[count].id + '>Delete</button></td></tr>';
+                        html += '<td>' + "<button class='btn btn-danger delete' id=" + data[count].id + " value=" + data[count].img_name + ">Delete</button></td></tr>";
                     }
                     $('.tbl2').html(html);
                 }
@@ -120,16 +125,20 @@
 
         $(document).on('click', '.delete', function() {
             var id = $(this).attr('id');
+            var name = $(this).attr('value');
+            console.log(name);
             // if (confirm("Are u sure want to delete this record?")) {
             $.ajax({
                 url: "{{ route('delete') }}",
                 method: "POST",
                 data: {
                     id: id,
+                    name: name,
                     _token: _token
                 },
                 success: function(data) {
-                    $('#message').html(data);
+                    $('#message').html(data.message);
+                    $('#message').addClass(data.class_name);
                     fetch_data();
                 }
             })
