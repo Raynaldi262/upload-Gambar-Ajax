@@ -138,7 +138,7 @@
                 },
                 success: function(data) {
                     $('#message').html(data.message);
-                    $('#message').addClass(data.class_name);
+                    $('#message').addClass(data.class_name); 
                     fetch_data();
                 }
             })

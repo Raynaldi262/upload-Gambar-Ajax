@@ -173,14 +173,12 @@ class ImagesController extends Controller
     {
         if ($request->ajax()) {
             Image::deleted($request->id);
-            // try {    //apus data gambar dari file storage
-            //     Storage::disk('local')->delete('public/images/' + $request->name);
-            // } catch (Exception $e) {
-            //     dump('errror');
-            // }
+            try {    //apus data gambar dari file storage
+                Storage::disk('local')->delete('public/images/'.$request->name);
+            } catch (Exception $e) {}
             return response()->json([
                 'message'   => 'Data Deleted',
-                'class_name'  => 'alert-danger',
+                'class_name'  => 'alert-danger', 
             ]);
         }
     }
