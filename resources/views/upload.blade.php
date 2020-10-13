@@ -39,13 +39,13 @@
             <div class="form-group">
                 <table class="table">
                     <input type='hidden' name='doc_id' id='doc_id' value="{{$id}}">
-                    <div class="col-sm-12 gambar">
+                    <!-- <div class="col-sm-12 gambar">
                         <img src="storage/images/default.jpg" class="img-tumbnail img-preview" width="200px">
-                    </div>
+                    </div> -->
                     <br>
                     <tr>
                         <td width="40%" align="right"><label>Select File for Upload</label></td>
-                        <td width="30"><input type="file" name="image" id="image" class="custom-file-input" onchange="preview()" /></td>
+                        <td width="30"><input type="file" name="image[]" id="images" class="custom-file-input" multiple="true" /></td>
                         <td width="30%" align="left"><input type="submit" name="upload" id="upload" class="btn btn-primary" value="Upload"></td>
                     </tr>
                     <tr>
@@ -80,10 +80,19 @@
 
         $('#upload_form').on('submit', function(event) {
             event.preventDefault();
+            var form_data = new FormData();
+
+            var totalfiles = document.getElementById('images').files.length;
+            for (var index = 0; index < totalfiles; index++) {
+                form_data.append("image[]", document.getElementById('images').files[index]);
+            }
+
+            form_data.append('_token', _token);
+            form_data.append('doc_id', '{{$id}}');
             $.ajax({
                 url: "{{ route('uploaded') }}",
                 method: "POST",
-                data: new FormData(this),
+                data: form_data,
                 dataType: 'JSON',
                 contentType: false,
                 cache: false,
@@ -97,9 +106,7 @@
                         $('#message').removeClass("alert-success").addClass(data.class_name);
                     }
                     $('.custom-file-input').val('');
-                    $('.img-preview').attr('src', 'storage/images/default.jpg');
                     fetch_data();
-
                 }
             })
         });
@@ -138,7 +145,7 @@
                 },
                 success: function(data) {
                     $('#message').html(data.message);
-                    $('#message').addClass(data.class_name); 
+                    $('#message').addClass(data.class_name);
                     fetch_data();
                 }
             })

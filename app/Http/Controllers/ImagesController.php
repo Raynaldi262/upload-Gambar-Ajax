@@ -61,72 +61,96 @@ class ImagesController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
-        ]);
+        $id = $request->doc_id;
+        $count = Image::getCount($id);
+        $count  =  6 - $count;
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message'   => $validator->errors()->all(),
-                'class_name'  => 'alert-danger'
-            ]);
-        } else {
-            $docId = $request->doc_id; //dpt dokumen id  
-            $ext = $request->image->extension();  //dpt file extension 
-            try {
-                $counter = Image::getCount($docId);
-                if ($counter >= 6) {
-                    return response()->json([
-                        'message'   => 'Melewati batas dan Melampauinya',
-                        'class_name'  => 'alert-danger'
+        try {
+            if (count($request->image) < $count + 1) {
+                $files = $request->file('image');
+                foreach ($files as $file) {
+                    $check = ['image' => $file];    //buat bisa dicek validator
+                    $validator = Validator::make($check, [
+                        'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
                     ]);
-                } else {
-                    // dapat nomor ke- dari nama gambar yg aktif //1,2,3 dst
-                    $name = DB::select("select SUBSTR(img_name,INSTR(img_name,'.')-1,1) as img_name from images where doc_id = ?", [$docId]);
-                    $tmp = ''; //tmp penyimpanan untk nama yg blm ada
+                    if ($validator->fails()) {
+                        return response()->json([
+                            'message'   => $validator->errors()->all(),
+                            'class_name'  => 'alert-danger'
+                        ]);
+                    } else {
+                        $docId = $request->doc_id; //dpt dokumen id  
+                        $ext = $file->extension();  //dpt file extension 
+                        try {
+                            $counter = Image::getCount($docId);
+                            if ($counter >= 6) {
+                                return response()->json([
+                                    'message'   => 'Melewati batas dan Melampauinya',
+                                    'class_name'  => 'alert-danger'
+                                ]);
+                            } else {
+                                // dapat nomor ke- dari nama gambar yg aktif //1,2,3 dst
+                                $name = DB::select("select SUBSTR(img_name,INSTR(img_name,'.')-1,1) as img_name from images where doc_id = ?", [$docId]);
+                                $tmp = ''; //tmp penyimpanan untk nama yg blm ada
 
-                    // looping sampai ketemu angka yg blm ada
-                    for ($i = 1; $i < 7; $i++) {
-                        $c = 0;
-                        foreach ($name as $counter) {
-                            if ($counter->img_name == $i) {
-                                $c++;
+                                // looping sampai ketemu angka yg blm ada
+                                for ($i = 1; $i < 7; $i++) {
+                                    $c = 0;
+                                    foreach ($name as $counter) {
+                                        if ($counter->img_name == $i) {
+                                            $c++;
+                                        }
+                                    }
+                                    if ($c == 0) {
+                                        $tmp = $i;
+                                        break;
+                                    }
+                                }
                             }
+
+                            $name = $docId . '-' . $tmp . '.' . $ext;
+                        } catch (Exception $e) {
+                            $name = $docId . '-1.' . $ext;
+                        } // end cari nama
+
+                        $path = storage_path('app\public\images\\' . $name);
+                        Images::make($file)->resize(300, 200)->save($path);
+
+
+                        if (!$request->session()->exists('data')) {
+                            $created_by = 'Guest';
+                        } else {
+                            $created_by = $request->session()->get('data');
                         }
-                        if ($c == 0) {
-                            $tmp = $i;
-                            break;
-                        }
+
+                        Image::create([
+                            'doc_id' => $docId,
+                            'img_name' => $name,
+                            'img_path' => $path,
+                            'created_by' => $created_by
+                        ]);
                     }
                 }
-
-                $name = $docId . '-' . $tmp . '.' . $ext;
-            } catch (Exception $e) {
-                $name = $docId . '-1.' . $ext;
-            } // end cari nama
-
-            $path = storage_path('app\public\images\\' . $name);
-            Images::make($request->image)->resize(300, 200)->save($path);
-
-
-            if (!$request->session()->exists('data')) {
-                $created_by = 'Guest';
+                return response()->json([
+                    'message'   => 'Image Upload Successfully',
+                    'class_name'  => 'alert-success',
+                ]);
             } else {
-                $created_by = $request->session()->get('data');
+                return response()->json([
+                    'message'   => "You are only allowed to upload a maximum of " . $count . " files",
+                    'class_name'  => 'alert-danger'
+                ]);
             }
-
-            Image::create([
-                'doc_id' => $docId,
-                'img_name' => $name,
-                'img_path' => $path,
-                'created_by' => $created_by
-            ]);
-
-            return response()->json([
-                'message'   => 'Image Upload Successfully',
-                'class_name'  => 'alert-success'
-            ]);
+        } catch (Exception $e) {
+            return $e->getMessage();
         }
+
+        // return response()->json([
+        //     'message'   => 'gagal',
+        //     'class_name'  => 'alert-danger',
+        //     // 'req' => $request->all(),
+        //     'req' => $count,
+        // ]);
     }
 
     /**
@@ -174,11 +198,12 @@ class ImagesController extends Controller
         if ($request->ajax()) {
             Image::deleted($request->id);
             try {    //apus data gambar dari file storage
-                Storage::disk('local')->delete('public/images/'.$request->name);
-            } catch (Exception $e) {}
+                Storage::disk('local')->delete('public/images/' . $request->name);
+            } catch (Exception $e) {
+            }
             return response()->json([
                 'message'   => 'Data Deleted',
-                'class_name'  => 'alert-danger', 
+                'class_name'  => 'alert-danger',
             ]);
         }
     }
